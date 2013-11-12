@@ -42,19 +42,29 @@ void Test_FT_EDS::test_MAC()
     //qDebug() << eds.getDEC();
     QCOMPARE(eds.getDEC(), (uint16_t)0);
 
-    eds.updateDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6); 
+    QVERIFY(eds.updateDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6));
 
     HEXDUMP(&EEPROM.prom);
+
+    unsigned int* len;
+    uint8_t mac2[6];
+    QVERIFY(eds.readDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac2, 6));
+
+    for( int i=0 ; i<6 ; i++ )
+    {
+        QCOMPARE(mac[i], mac2[i]);
+    }
+
+
     QCOMPARE(eds.getDEC(), (uint16_t)1);
 
     mac[0] = 0x4D;
-    mac[1] = 0x41; 
-    mac[2] = 0x43; 
-    mac[3] = 0xFE; 
-    mac[4] = 0xFE; 
+    mac[1] = 0x41;
+    mac[2] = 0x43;
+    mac[3] = 0xFE;
+    mac[4] = 0xFE;
     mac[5] = 0x21;
-    eds.updateDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6); 
-    /// @todo imp update
+    QVERIFY(eds.updateDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6));
 
     HEXDUMP(&EEPROM.prom);
     QCOMPARE(eds.getDEC(), (uint16_t)1);

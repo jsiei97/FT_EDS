@@ -21,6 +21,7 @@
 typedef enum eds_ID
 {
     EDS_ETH_MAC = 1,
+    EDS_ONEWIRE_LIST,
 } edsId;
 
 typedef enum eds_TYPE
@@ -45,7 +46,8 @@ class FT_EDS
      public: 
          void init();
          uint16_t getDEC();
-         int getDE(edsId id, uint8_t* data);
+
          bool updateDE(edsId id, edsType type, uint8_t* data, unsigned int len);
+         bool readDE  (edsId id, edsType type, uint8_t* data, unsigned int len);
 
 };
