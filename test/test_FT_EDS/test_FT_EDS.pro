@@ -11,7 +11,7 @@ SOURCES += Test_FT_EDS.cpp
 # Code to test
 DEPENDPATH += ../../EDS/
 INCLUDEPATH += ../../EDS/
-SOURCES += FT_EDS.cpp
+SOURCES += FT_EDS.cpp HexDump.cpp
 
 # Stubs
 DEPENDPATH += stub/

@@ -79,7 +79,7 @@ void FT_EDS::init()
     }
 
     posNextDE = 7;
-    posFreeData = EEPROM_MAX_SIZE-1;
+    posFreeData = EEPROM_MAX_SIZE;
 }
 
 uint16_t FT_EDS::getDEC()
@@ -122,9 +122,13 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
         write16(posNextDE+2, (uint16_t)type); //deType
         write32(posNextDE+4, (uint32_t)len);  //deLen
 
-        if(len < 4)
+        if(len <= 4)
         {
             //data fits in the area
+            for( unsigned int i=0 ; i<len ; i++ )
+            {
+                EEPROM.write(posNextDE+8+i, data[i]);
+            }
         }
         else
         {
@@ -132,7 +136,7 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
             posFreeData -= len;
             write32(posNextDE+8, (uint32_t)(posFreeData));  //deLen
 
-            for( int i=0 ; i<len ; i++ )
+            for( unsigned int i=0 ; i<len ; i++ )
             {
                 EEPROM.write(posFreeData+i, data[i]);
             }
@@ -146,6 +150,7 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
         //update the old DE found at "pos"
     }
 
+    return true;
 }
 
 

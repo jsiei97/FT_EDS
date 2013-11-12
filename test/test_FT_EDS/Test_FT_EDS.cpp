@@ -3,6 +3,7 @@
 
 #include <EEPROM.h>
 #include "FT_EDS.h"
+#include "HexDump.h"
 
 class Test_FT_EDS : public QObject
 {
@@ -34,7 +35,7 @@ void Test_FT_EDS::test_MAC()
 
     eds.write32(8, 0xCAFEBABE);
     QCOMPARE(eds.read32(8), (uint32_t)0xCAFEBABE);
-    //qDebug() << EEPROM.prom.toHex();
+    //HEXDUMP(&EEPROM.prom);
 
     uint8_t mac[] = { 0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x02 };
 
@@ -43,7 +44,19 @@ void Test_FT_EDS::test_MAC()
 
     eds.updateDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6); 
 
-    qDebug() << EEPROM.prom.toHex();
+    HEXDUMP(&EEPROM.prom);
+    QCOMPARE(eds.getDEC(), (uint16_t)1);
+
+    mac[0] = 0x4D;
+    mac[1] = 0x41; 
+    mac[2] = 0x43; 
+    mac[3] = 0xFE; 
+    mac[4] = 0xFE; 
+    mac[5] = 0x21;
+    eds.updateDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6); 
+    /// @todo imp update
+
+    HEXDUMP(&EEPROM.prom);
     QCOMPARE(eds.getDEC(), (uint16_t)1);
 }
 
