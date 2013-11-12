@@ -93,7 +93,7 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
     uint16_t dec = getDEC();
     for( int i = 0 ; i < dec ; i++ )
     {
-        pos = 7+(i*12);
+        pos = 7+(i*10);
         if(read16(pos)==(uint16_t)id)
         {
             break;
@@ -113,21 +113,21 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
 
         write16(posNextDE,   (uint16_t)id);   //deId
         write16(posNextDE+2, (uint16_t)type); //deType
-        write32(posNextDE+4, (uint32_t)len);  //deLen
+        write16(posNextDE+4, (uint16_t)len);  //deLen
 
         if(len <= 4)
         {
             //data fits in the area
             for( unsigned int i=0 ; i<len ; i++ )
             {
-                EEPROM.write(posNextDE+8+i, data[i]);
+                EEPROM.write(posNextDE+6+i, data[i]);
             }
         }
         else
         {
             //data goes into the free area, deData has a pointer to it!
             posFreeData -= len;
-            write32(posNextDE+8, (uint32_t)(posFreeData));  //deLen
+            write32(posNextDE+6, (uint32_t)(posFreeData));  //deLen
 
             for( unsigned int i=0 ; i<len ; i++ )
             {
@@ -144,10 +144,10 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
         /// @todo check that old type is the same as the new type!
         /// @todo check that old len is the same as the new len!
         write16(pos+2, (uint16_t)type); //deType
-        write32(pos+4, (uint32_t)len);  //deLen
+        write16(pos+4, (uint16_t)len);  //deLen
         if(len > 4)
         {
-            uint32_t p = read32(pos+8);
+            uint32_t p = read32(pos+6);
             if(p>EEPROM_MAX_SIZE)
             {
                 //Where did this pointer go???
@@ -162,7 +162,7 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
         {
             for( unsigned int i=0 ; i<len ; i++ )
             {
-                EEPROM.write(pos+8+i, data[i]);
+                EEPROM.write(pos+6+i, data[i]);
             }
 
         }
@@ -178,16 +178,16 @@ bool FT_EDS::readDE(edsId id, edsType type, uint8_t* data, unsigned int len)
     uint16_t dec = getDEC();
     for( int i = 0 ; i < dec ; i++ )
     {
-        pos = 7+(i*12);
+        pos = 7+(i*10);
         if(
                 read16(pos)  ==(uint16_t)id &&
                 read16(pos+2)==(uint16_t)type &&
-                read32(pos+4)==(uint32_t)len
+                read16(pos+4)==(uint16_t)len
           )
         {
             if(len > 4)
             {
-                uint32_t p = read32(pos+8);
+                uint32_t p = read32(pos+6);
                 if(p>EEPROM_MAX_SIZE)
                 {
                     //Where did this pointer go???
@@ -203,7 +203,7 @@ bool FT_EDS::readDE(edsId id, edsType type, uint8_t* data, unsigned int len)
             {
                 for( int i=0 ; i<len ; i++ )
                 {
-                    data[i] = EEPROM.read(pos+8+i);
+                    data[i] = EEPROM.read(pos+6+i);
                 }
 
             }

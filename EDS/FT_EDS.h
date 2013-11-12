@@ -15,7 +15,7 @@
 #define FT_EDS_REV 1
 
 #ifndef EEPROM_MAX_SIZE
-#define EEPROM_MAX_SIZE 128
+#define EEPROM_MAX_SIZE 1024
 #endif
 
 typedef enum eds_ID

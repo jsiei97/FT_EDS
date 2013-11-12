@@ -21,7 +21,6 @@ void Test_FT_EDS::test_MAC()
     //qDebug() << "test";
     FT_EDS eds;
 
-
     eds.init();
 
     //Test the internal reads on the magic numbers...
@@ -39,12 +38,17 @@ void Test_FT_EDS::test_MAC()
 
     uint8_t mac[] = { 0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x02 };
 
+    if(eds.readDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6))
+    {
+        QFAIL("Not created so we should get a false here...!");
+    }
+
     //qDebug() << eds.getDEC();
     QCOMPARE(eds.getDEC(), (uint16_t)0);
 
     QVERIFY(eds.updateDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6));
 
-    HEXDUMP(&EEPROM.prom);
+    //HEXDUMP(&EEPROM.prom);
 
     unsigned int* len;
     uint8_t mac2[6];
@@ -54,7 +58,6 @@ void Test_FT_EDS::test_MAC()
     {
         QCOMPARE(mac[i], mac2[i]);
     }
-
 
     QCOMPARE(eds.getDEC(), (uint16_t)1);
 
@@ -66,8 +69,9 @@ void Test_FT_EDS::test_MAC()
     mac[5] = 0x21;
     QVERIFY(eds.updateDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6));
 
-    HEXDUMP(&EEPROM.prom);
     QCOMPARE(eds.getDEC(), (uint16_t)1);
+
+    HEXDUMP(&EEPROM.prom);
 }
 
 QTEST_MAIN(Test_FT_EDS)
