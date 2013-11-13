@@ -60,7 +60,24 @@ void FT_EDS::init()
             (EEPROM.read(3) == MAGIC_3) &&
             (EEPROM.read(4) == FT_EDS_REV))
     {
-        //ok!
+        uint16_t dec = getDEC();
+        posNextDE = 7+(dec*10);
+        posFreeData = 0;
+
+        //check the DE with len > 4 for the lowest address
+        for( unsigned int i = 0 ; i < dec ; i++ )
+        {
+            uint16_t dePos = 7+(i*10);
+            if(read16(dePos+4) > 4)
+            {
+                uint32_t p = read32(dePos+6);
+                if(p > posFreeData)
+                {
+                    //Now remember the pos before him
+                    posFreeData = p-1;
+                }
+            }
+        }
         return;
     }
     else
@@ -110,7 +127,6 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
         dec++;
         write16(5, dec);
 
-
         write16(posNextDE,   (uint16_t)id);   //deId
         write16(posNextDE+2, (uint16_t)type); //deType
         write16(posNextDE+4, (uint16_t)len);  //deLen
@@ -136,7 +152,7 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
 
             posFreeData--;
         }
-
+        posNextDE += 10;
     }
     else
     {

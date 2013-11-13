@@ -72,6 +72,13 @@ void Test_FT_EDS::test_MAC()
     QCOMPARE(eds.getDEC(), (uint16_t)1);
 
     HEXDUMP(&EEPROM.prom);
+
+    /// @todo Add something with len 0..3 so it fits inside the data field...
+
+	//Check that init can restore the pointers to free data....
+    qDebug() << eds.posNextDE << eds.posFreeData;
+    eds.init();
+    qDebug() << eds.posNextDE << eds.posFreeData;
 }
 
 QTEST_MAIN(Test_FT_EDS)
