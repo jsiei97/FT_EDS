@@ -50,13 +50,14 @@ void Test_FT_EDS::test_MAC()
 
     //HEXDUMP(&EEPROM.prom);
 
-    unsigned int* len;
-    uint8_t mac2[6];
-    QVERIFY(eds.readDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac2, 6));
-
-    for( int i=0 ; i<6 ; i++ )
     {
-        QCOMPARE(mac[i], mac2[i]);
+        uint8_t mac2[6];
+        QVERIFY(eds.readDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac2, 6));
+
+        for( int i=0 ; i<6 ; i++ )
+        {
+            QCOMPARE(mac[i], mac2[i]);
+        }
     }
 
     QCOMPARE(eds.getDEC(), (uint16_t)1);
@@ -71,14 +72,48 @@ void Test_FT_EDS::test_MAC()
 
     QCOMPARE(eds.getDEC(), (uint16_t)1);
 
-    HEXDUMP(&EEPROM.prom);
+    //HEXDUMP(&EEPROM.prom);
 
     /// @todo Add something with len 0..3 so it fits inside the data field...
 
-	//Check that init can restore the pointers to free data....
-    qDebug() << eds.posNextDE << eds.posFreeData;
+    uint8_t keylist[2][8] =
+    {
+        { 0x01, 0x5D, 0x79, 0xA7, 0x09, 0x00, 0x00, 0x66},
+        { 0x01, 0x12, 0xE8, 0xA5, 0x09, 0x00, 0x00, 0x4A}
+    };
+    QVERIFY(eds.updateDE(EDS_ONEWIRE_LIST, EDS_BYTE_ARRAY, &keylist[0][0], 16));
+
+    HEXDUMP(&EEPROM.prom);
+
+    QCOMPARE(eds.getDEC(), (uint16_t)2);
+
+    //Do a keylist with 3*8 to the same id
+    //and use more space...
+    //Valid to do if the pointer in DE
+    //is the same as the posFreeData pointer!
+
+
+    //Then read the mac data so it is still the same!
+    {
+        uint8_t mac2[6];
+        QVERIFY(eds.readDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac2, 6));
+
+        for( int i=0 ; i<6 ; i++ )
+        {
+            QCOMPARE(mac[i], mac2[i]);
+        }
+    }
+
+    //Check that init can restore the pointers to free data....
+    unsigned int nextDE   = eds.posNextDE;
+    unsigned int freeData = eds.posFreeData;
+
+    //qDebug() << eds.posNextDE << eds.posFreeData;
     eds.init();
-    qDebug() << eds.posNextDE << eds.posFreeData;
+    //qDebug() << eds.posNextDE << eds.posFreeData;
+
+    QCOMPARE(nextDE, eds.posNextDE);
+    QCOMPARE(freeData,eds.posFreeData);
 }
 
 QTEST_MAIN(Test_FT_EDS)

@@ -62,7 +62,7 @@ void FT_EDS::init()
     {
         uint16_t dec = getDEC();
         posNextDE = 7+(dec*10);
-        posFreeData = 0;
+        posFreeData = EEPROM_MAX_SIZE;
 
         //check the DE with len > 4 for the lowest address
         for( unsigned int i = 0 ; i < dec ; i++ )
@@ -71,10 +71,10 @@ void FT_EDS::init()
             if(read16(dePos+4) > 4)
             {
                 uint32_t p = read32(dePos+6);
-                if(p > posFreeData)
+                if(p < posFreeData)
                 {
                     //Now remember the pos before him
-                    posFreeData = p-1;
+                    posFreeData = p;
                 }
             }
         }
@@ -149,8 +149,6 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
             {
                 EEPROM.write(posFreeData+i, data[i]);
             }
-
-            posFreeData--;
         }
         posNextDE += 10;
     }
