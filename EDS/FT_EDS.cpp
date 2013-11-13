@@ -123,6 +123,10 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
 
     if(0 == pos)
     {
+        if(len > getFree())
+        {
+            return false;
+        }
         //add a new DE, since this is new
         dec++;
         write16(5, dec);
@@ -155,10 +159,39 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
     else
     {
         //update the old DE found at "pos"
-        /// @todo check that old type is the same as the new type!
-        /// @todo check that old len is the same as the new len!
+
+		//Check that it has the same size as the old
+        uint16_t oldLen = read16(pos+4);
+        int diff = len-oldLen;
+
+
+        if((oldLen < len) && (len > 4))
+        {
+            if(diff > getFree())
+            {
+                return false;
+            }
+
+            //It is NOT the same size!
+            uint32_t oldP = read32(pos+6);
+
+            //The size is different but maybe we can fit it in...
+            if(oldP != posFreeData)
+            {
+                //Only allow the last data to grow, 
+                //the others has data before or after!
+                return false;
+            }
+
+            //Move back the pointer to get more space
+            oldP -= diff;
+            posFreeData -= diff;
+            write32(pos+6, oldP);
+        }
+
         write16(pos+2, (uint16_t)type); //deType
         write16(pos+4, (uint16_t)len);  //deLen
+
         if(len > 4)
         {
             uint32_t p = read32(pos+6);
@@ -233,7 +266,7 @@ bool FT_EDS::readDE(edsId id, edsType type, uint8_t* data, unsigned int len)
  *
  * @return how many bytes is free
  */
-unsigned int FT_EDS::free()
+unsigned int FT_EDS::getFree()
 {
     return posFreeData - posNextDE;
 }

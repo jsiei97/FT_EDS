@@ -50,5 +50,5 @@ class FT_EDS
          bool updateDE(edsId id, edsType type, uint8_t* data, unsigned int len);
          bool readDE  (edsId id, edsType type, uint8_t* data, unsigned int len);
 
-         unsigned int free();
+         unsigned int getFree();
 };

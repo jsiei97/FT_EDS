@@ -2,7 +2,7 @@ CONFIG += qtestlib debug
 TEMPLATE = app
 TARGET =
 DEFINES += private=public
-DEFINES += EEPROM_MAX_SIZE=200
+DEFINES += EEPROM_MAX_SIZE=100
 
 # Test code
 DEPENDPATH += .

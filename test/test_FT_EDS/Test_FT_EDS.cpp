@@ -23,7 +23,7 @@ void Test_FT_EDS::test_MAC()
 
     eds.init();
 
-    QCOMPARE((unsigned int)eds.free(), (unsigned int)(EEPROM_MAX_SIZE-7));
+    QCOMPARE((unsigned int)eds.getFree(), (unsigned int)(EEPROM_MAX_SIZE-7));
 
     //Test the internal reads on the magic numbers...
     QCOMPARE(eds.read16(0), (uint16_t)0x2345);
@@ -50,7 +50,7 @@ void Test_FT_EDS::test_MAC()
 
     QVERIFY(eds.updateDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6));
 
-    QCOMPARE((unsigned int)eds.free(), (unsigned int)(EEPROM_MAX_SIZE-7-10-6));
+    QCOMPARE((unsigned int)eds.getFree(), (unsigned int)(EEPROM_MAX_SIZE-7-10-6));
 
     //HEXDUMP(&EEPROM.prom);
 
@@ -75,28 +75,40 @@ void Test_FT_EDS::test_MAC()
     QVERIFY(eds.updateDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6));
 
     QCOMPARE(eds.getDEC(), (uint16_t)1);
-    QCOMPARE((unsigned int)eds.free(), (unsigned int)(EEPROM_MAX_SIZE-7-10-6));
+    QCOMPARE((unsigned int)eds.getFree(), (unsigned int)(EEPROM_MAX_SIZE-7-10-6));
 
     //HEXDUMP(&EEPROM.prom);
 
     /// @todo Add something with len 0..3 so it fits inside the data field...
 
-    uint8_t keylist[2][8] =
+    uint8_t keylist_s2[2][8] =
     {
         { 0x01, 0x5D, 0x79, 0xA7, 0x09, 0x00, 0x00, 0x66},
         { 0x01, 0x12, 0xE8, 0xA5, 0x09, 0x00, 0x00, 0x4A}
     };
-    QVERIFY(eds.updateDE(EDS_ONEWIRE_LIST, EDS_BYTE_ARRAY, &keylist[0][0], 16));
+    QVERIFY(eds.updateDE(EDS_ONEWIRE_LIST, EDS_BYTE_ARRAY, &keylist_s2[0][0], 2*8));
 
-    HEXDUMP(&EEPROM.prom);
+    //HEXDUMP(&EEPROM.prom);
 
     QCOMPARE(eds.getDEC(), (uint16_t)2);
-    QCOMPARE((unsigned int)eds.free(), (unsigned int)(EEPROM_MAX_SIZE-7-10-6-10-16));
+    QCOMPARE((unsigned int)eds.getFree(), (unsigned int)(EEPROM_MAX_SIZE-7-10-6-10-16));
 
     //Do a keylist with 3*8 to the same id
     //and use more space...
     //Valid to do if the pointer in DE
     //is the same as the posFreeData pointer!
+    uint8_t keylist_s4[4][8] =
+    {
+        { 0x01, 0x5D, 0x79, 0xA7, 0x09, 0x00, 0x00, 0x66},
+        { 0x01, 0x12, 0xE8, 0xA5, 0x09, 0x00, 0x00, 0x4A},
+        { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+        { 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18}
+    };
+    if(!eds.updateDE(EDS_ONEWIRE_LIST, EDS_BYTE_ARRAY, &keylist_s4[0][0], 4*8))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("Error update failed!");
+    }
 
 
     //Then read the mac data so it is still the same!
@@ -110,14 +122,15 @@ void Test_FT_EDS::test_MAC()
         }
     }
 
+    QCOMPARE(eds.getDEC(), (uint16_t)2);
+    QCOMPARE((unsigned int)eds.getFree(), (unsigned int)(EEPROM_MAX_SIZE-7-10-6-10-(4*8)));
+
+    HEXDUMP(&EEPROM.prom);
+
     //Check that init can restore the pointers to free data....
     unsigned int nextDE   = eds.posNextDE;
     unsigned int freeData = eds.posFreeData;
-
-    //qDebug() << eds.posNextDE << eds.posFreeData;
     eds.init();
-    //qDebug() << eds.posNextDE << eds.posFreeData;
-
     QCOMPARE(nextDE, eds.posNextDE);
     QCOMPARE(freeData,eds.posFreeData);
 }
