@@ -23,6 +23,8 @@ void Test_FT_EDS::test_MAC()
 
     eds.init();
 
+    QCOMPARE((unsigned int)eds.free(), (unsigned int)(EEPROM_MAX_SIZE-7));
+
     //Test the internal reads on the magic numbers...
     QCOMPARE(eds.read16(0), (uint16_t)0x2345);
     QCOMPARE(eds.read16(2), (uint16_t)0x5432);
@@ -48,6 +50,8 @@ void Test_FT_EDS::test_MAC()
 
     QVERIFY(eds.updateDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6));
 
+    QCOMPARE((unsigned int)eds.free(), (unsigned int)(EEPROM_MAX_SIZE-7-10-6));
+
     //HEXDUMP(&EEPROM.prom);
 
     {
@@ -71,6 +75,7 @@ void Test_FT_EDS::test_MAC()
     QVERIFY(eds.updateDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6));
 
     QCOMPARE(eds.getDEC(), (uint16_t)1);
+    QCOMPARE((unsigned int)eds.free(), (unsigned int)(EEPROM_MAX_SIZE-7-10-6));
 
     //HEXDUMP(&EEPROM.prom);
 
@@ -86,6 +91,7 @@ void Test_FT_EDS::test_MAC()
     HEXDUMP(&EEPROM.prom);
 
     QCOMPARE(eds.getDEC(), (uint16_t)2);
+    QCOMPARE((unsigned int)eds.free(), (unsigned int)(EEPROM_MAX_SIZE-7-10-6-10-16));
 
     //Do a keylist with 3*8 to the same id
     //and use more space...

@@ -226,3 +226,14 @@ bool FT_EDS::readDE(edsId id, edsType type, uint8_t* data, unsigned int len)
     }
     return false;
 }
+
+
+/**
+ * How much space is free on the EEPROM?
+ *
+ * @return how many bytes is free
+ */
+unsigned int FT_EDS::free()
+{
+    return posFreeData - posNextDE;
+}
