@@ -1,6 +1,6 @@
 /**
  * @file FT_EDS.h
- * @author Johan Simonsson  
+ * @author Johan Simonsson
  * @brief The Fun Tech EEPROM Data Storage class
  */
 
@@ -20,21 +20,31 @@
 
 typedef enum eds_ID
 {
-    EDS_ETH_MAC = 1,
-    EDS_ONEWIRE_LIST,
+    EDS_ETH_MAC      = 0x001, ///< Ethernet MAC for the Eth Shield
+
+    EDS_ONEWIRE_LIST = 0x100, ///< List with 1w adresses.
+
+    EDS_REGUL_P      = 0x200, ///< p in pid
+    EDS_REGUL_I,              ///< i in pid
+    EDS_REGUL_D,              ///< d in pid
 } edsId;
 
 typedef enum eds_TYPE
 {
     EDS_BYTE = 1,  ///< uint8_t
     EDS_WORD,      ///< uint32_t
-    //EDS_SWORD,     ///< int32_t
-    EDS_BYTE_ARRAY,///< Array with uint8_t
+
+    EDS_FIXED_32_4 = 0x100,  ///< 32 bit fixed point with 2^4 scale
+    EDS_FIXED_32_8,          ///< 32 bit fixed point with 2^8 scale
+    EDS_FIXED_32_12,         ///< 32 bit fixed point with 2^12 scale
+    EDS_FIXED_32_16,         ///< 32 bit fixed point with 2^16 scale
+
+    EDS_BYTE_ARRAY = 0x200,  ///< Array with uint8_t
 } edsType;
 
-class FT_EDS 
+class FT_EDS
 {
-     private: 
+     private:
          uint16_t read16(int address);
          uint32_t read32(int address);
          void write16(int address, uint16_t data);
@@ -43,12 +53,15 @@ class FT_EDS
          unsigned int posNextDE;
          unsigned int posFreeData;
 
-     public: 
+     public:
          void init();
          uint16_t getDEC();
 
          bool updateDE(edsId id, edsType type, uint8_t* data, unsigned int len);
          bool readDE  (edsId id, edsType type, uint8_t* data, unsigned int len);
+
+         bool updateDE(edsId id, edsType type, double data);
+         bool readDE  (edsId id, double* data);
 
          unsigned int getFree();
 };

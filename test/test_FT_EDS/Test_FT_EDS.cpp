@@ -10,11 +10,31 @@ class Test_FT_EDS : public QObject
     Q_OBJECT
 
     private:
+        bool doubleApproxSame(double, double);
     public:
 
     private slots:
         void test_MAC();
+        void test_FIXED_POINT();
+        void test_FIXED_POINT_data();
+
+        void test_Regul();
+        void test_Regul_data();
 };
+
+bool Test_FT_EDS::doubleApproxSame(double d1, double d2)
+{
+    if( (d1 >= (d2-0.0001)) && (d1 <= (d2+0.0001)) )
+    {
+        //qDebug() << "ok" << d1 << d2;
+        return true;
+    }
+    else
+    {
+        qDebug() << "Fail not close" << d1 << d2;
+        return false;
+    }
+}
 
 void Test_FT_EDS::test_MAC()
 {
@@ -125,7 +145,7 @@ void Test_FT_EDS::test_MAC()
     QCOMPARE(eds.getDEC(), (uint16_t)2);
     QCOMPARE((unsigned int)eds.getFree(), (unsigned int)(EEPROM_MAX_SIZE-7-10-6-10-(4*8)));
 
-    HEXDUMP(&EEPROM.prom);
+    //HEXDUMP(&EEPROM.prom);
 
     //Check that init can restore the pointers to free data....
     unsigned int nextDE   = eds.posNextDE;
@@ -133,6 +153,114 @@ void Test_FT_EDS::test_MAC()
     eds.init();
     QCOMPARE(nextDE, eds.posNextDE);
     QCOMPARE(freeData,eds.posFreeData);
+}
+
+
+void Test_FT_EDS::test_FIXED_POINT_data()
+{
+    QTest::addColumn<double>("kp");
+    QTest::newRow("test") <<  10.0;
+    QTest::newRow("test") << -10.0;
+
+    int scale = 100;
+    for( int val = -30*scale ; val < 30*scale ; val += (scale*0.5))
+    {
+        QTest::newRow("Nice value test") << ((double)val)/scale;
+    }
+
+    for( int val = -30*scale ; val < 30*scale ; val += (scale*0.01))
+    {
+        QTest::newRow("Bad value test") << ((double)val)/scale;
+    }
+}
+
+void Test_FT_EDS::test_FIXED_POINT()
+{
+    QFETCH(double, kp);
+
+    //qDebug() << __func__ << kp;
+
+    FT_EDS eds;
+    eds.init();
+    //HEXDUMP(&EEPROM.prom);
+
+    double p2 = 0;
+    if(!eds.updateDE(EDS_REGUL_P, EDS_FIXED_32_16, kp))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("updateDE failed!");
+    }
+
+    if(!eds.readDE(EDS_REGUL_P, &p2))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("readDE failed!");
+    }
+
+    //Since fixpoint can store the exact value,
+    //let't check a rounded value so we are close...!
+    QVERIFY(doubleApproxSame(kp, p2));
+
+    //HEXDUMP(&EEPROM.prom);
+}
+
+void Test_FT_EDS::test_Regul_data()
+{
+    QTest::addColumn<double>("kp");
+    QTest::addColumn<double>("ki");
+    QTest::addColumn<double>("kd");
+
+    QTest::newRow("test") <<  10.5 <<  5.25 <<  90.0;
+    QTest::newRow("test") << -10.5 << -5.25 << -90.0;
+
+}
+void Test_FT_EDS::test_Regul()
+{
+    QFETCH(double, kp);
+    QFETCH(double, ki);
+    QFETCH(double, kd);
+
+    FT_EDS eds;
+    eds.init();
+
+    if(!eds.updateDE(EDS_REGUL_P, EDS_FIXED_32_16, kp))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("updateDE failed! p");
+    }
+    if(!eds.updateDE(EDS_REGUL_I, EDS_FIXED_32_16, ki))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("updateDE failed! i");
+    }
+    if(!eds.updateDE(EDS_REGUL_D, EDS_FIXED_32_16, kd))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("updateDE failed! d");
+    }
+
+
+    double p,i,d;
+
+    if(!eds.readDE(EDS_REGUL_P, &p))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("readDE failed!");
+    }
+    if(!eds.readDE(EDS_REGUL_I, &i))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("readDE failed!");
+    }
+    if(!eds.readDE(EDS_REGUL_D, &d))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("readDE failed!");
+    }
+
+    QVERIFY(doubleApproxSame(kp, p));
+    QVERIFY(doubleApproxSame(ki, i));
+    QVERIFY(doubleApproxSame(kd, d));
 }
 
 QTEST_MAIN(Test_FT_EDS)

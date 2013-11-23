@@ -104,6 +104,33 @@ uint16_t FT_EDS::getDEC()
     return read16(5);
 }
 
+bool FT_EDS::updateDE(edsId id, edsType type, double data)
+{
+    int32_t fData = 0;
+
+    switch ( type )
+    {
+        default:
+            type = EDS_FIXED_32_16;
+            //fall throu ok since 32_16 is default!
+        case EDS_FIXED_32_16:
+            fData = (int)(data*(1<<16));
+            break;
+        case EDS_FIXED_32_8:
+            fData = (int)(data*(1<<8));
+            break;
+    }
+
+    uint8_t arr[4] ;
+    for( int i=3 ; i>=0 ; i-- )
+    {
+        arr[i] = 0xFF & fData;
+        fData >>= 8;
+    }
+
+    return updateDE(id, type, &arr[0], 4);
+}
+
 bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
 {
     unsigned int pos = 0;
@@ -160,9 +187,9 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
     {
         //update the old DE found at "pos"
 
-		//Check that it has the same size as the old
+        //Check that it has the same size as the old
         uint16_t oldLen = read16(pos+4);
-        int diff = len-oldLen;
+        unsigned int diff = len-oldLen;
 
 
         if((oldLen < len) && (len > 4))
@@ -178,7 +205,7 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
             //The size is different but maybe we can fit it in...
             if(oldP != posFreeData)
             {
-                //Only allow the last data to grow, 
+                //Only allow the last data to grow,
                 //the others has data before or after!
                 return false;
             }
@@ -218,6 +245,37 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
     return true;
 }
 
+bool FT_EDS::readDE(edsId id, double* data)
+{
+    bool ret = false;
+    unsigned int pos = 0;
+    uint16_t dec = getDEC();
+    for( int i = 0 ; i < dec ; i++ )
+    {
+        pos = 7+(i*10);
+        if( read16(pos) == (uint16_t)id )
+        {
+            uint16_t type = read16(pos+2);
+            //uint16_t len  = read16(pos+4);
+            int32_t raw = (int32_t)read32(pos+6);
+
+            switch ( type )
+            {
+                case EDS_FIXED_32_8:
+                    *data = (double)raw;
+                    *data /= (1<<8);
+                    ret = true;
+                    break;
+                case EDS_FIXED_32_16:
+                    *data = (double)raw;
+                    *data /= (1<<16);
+                    ret = true;
+                    break;
+            }
+        }
+    }
+    return ret;
+}
 
 bool FT_EDS::readDE(edsId id, edsType type, uint8_t* data, unsigned int len)
 {
@@ -241,14 +299,14 @@ bool FT_EDS::readDE(edsId id, edsType type, uint8_t* data, unsigned int len)
                     return false;
                 }
 
-                for( int i=0 ; i<len ; i++ )
+                for( unsigned int i=0 ; i<len ; i++ )
                 {
                     data[i] = EEPROM.read(p+i);
                 }
             }
             else
             {
-                for( int i=0 ; i<len ; i++ )
+                for( unsigned int i=0 ; i<len ; i++ )
                 {
                     data[i] = EEPROM.read(pos+6+i);
                 }
