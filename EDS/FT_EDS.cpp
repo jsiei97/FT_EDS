@@ -99,6 +99,14 @@ void FT_EDS::init()
     posFreeData = EEPROM_MAX_SIZE;
 }
 
+void FT_EDS::format()
+{
+    //Remove magic
+    write32(0,0);
+    //Remove DEC
+    write16(5,0);
+}
+
 uint16_t FT_EDS::getDEC()
 {
     return read16(5);
@@ -318,6 +326,14 @@ bool FT_EDS::readDE(edsId id, edsType type, uint8_t* data, unsigned int len)
     return false;
 }
 
+bool FT_EDS::getDEInfo(unsigned int dePos, edsId* id, edsType* type, unsigned int* len)
+{
+    int pos = 7+(dePos*10);
+    *id   = (edsId)read16(pos);
+    *type = (edsType)read16(pos+2);
+    *len  = read16(pos+4);
+    return true;
+}
 
 /**
  * How much space is free on the EEPROM?

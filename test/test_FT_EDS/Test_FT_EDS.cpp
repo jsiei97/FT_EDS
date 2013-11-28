@@ -41,6 +41,7 @@ void Test_FT_EDS::test_MAC()
     //qDebug() << "test";
     FT_EDS eds;
 
+    eds.format();
     eds.init();
 
     QCOMPARE((unsigned int)eds.getFree(), (unsigned int)(EEPROM_MAX_SIZE-7));
@@ -181,6 +182,7 @@ void Test_FT_EDS::test_FIXED_POINT()
     //qDebug() << __func__ << kp;
 
     FT_EDS eds;
+    eds.format();
     eds.init();
     //HEXDUMP(&EEPROM.prom);
 
@@ -221,22 +223,46 @@ void Test_FT_EDS::test_Regul()
     QFETCH(double, kd);
 
     FT_EDS eds;
+
+    eds.format();
     eds.init();
+    if(eds.getDEC() != 0)
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("FAIL: getDEC != 0");
+    }
 
     if(!eds.updateDE(EDS_REGUL_P, EDS_FIXED_32_16, kp))
     {
         HEXDUMP(&EEPROM.prom);
         QFAIL("updateDE failed! p");
     }
+    if(eds.getDEC() != 1)
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("FAIL: getDEC != 1");
+    }
+
     if(!eds.updateDE(EDS_REGUL_I, EDS_FIXED_32_16, ki))
     {
         HEXDUMP(&EEPROM.prom);
         QFAIL("updateDE failed! i");
     }
+    if(eds.getDEC() != 2)
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("FAIL: getDEC != 2");
+    }
+
     if(!eds.updateDE(EDS_REGUL_D, EDS_FIXED_32_16, kd))
     {
         HEXDUMP(&EEPROM.prom);
         QFAIL("updateDE failed! d");
+    }
+    if(eds.getDEC() != 3)
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("FAIL: getDEC != 3");
     }
 
 
@@ -261,6 +287,54 @@ void Test_FT_EDS::test_Regul()
     QVERIFY(doubleApproxSame(kp, p));
     QVERIFY(doubleApproxSame(ki, i));
     QVERIFY(doubleApproxSame(kd, d));
+
+
+    if(eds.getDEC() != 3)
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("FAIL: getDEC to many!");
+    }
+
+    unsigned int dec = eds.getDEC();
+    for( unsigned int de=0 ; de<dec ; de++ )
+    {
+        edsId id;
+        edsType type;
+        unsigned int size;
+        QVERIFY(eds.getDEInfo(de, &id, &type, &size));
+
+        switch ( id )
+        {
+            case EDS_REGUL_P:
+            case EDS_REGUL_I:
+            case EDS_REGUL_D:
+                //ok
+                break;
+            default :
+                qDebug() << __func__ << __LINE__ << de << id << type << size;
+                QFAIL("Error bad id found...");
+                break;
+        }
+
+        switch ( type )
+        {
+            case EDS_FIXED_32_4:
+            case EDS_FIXED_32_8:
+            case EDS_FIXED_32_12:
+            case EDS_FIXED_32_16:
+                //ok
+                break;
+            default :
+                qDebug() << __func__ << __LINE__ << de << id << type << size;
+                QFAIL("Error bad type found...");
+                break;
+        }
+        //qDebug() << __func__ << __LINE__ << de << id << type << size;
+
+    }
+
+
+
 }
 
 QTEST_MAIN(Test_FT_EDS)
