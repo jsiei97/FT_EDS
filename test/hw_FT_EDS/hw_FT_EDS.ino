@@ -15,7 +15,16 @@ void test(char* str)
 {
     Serial.println( "Test function" );
     Serial.println( str );
+}
 
+void info(char* str)
+{
+    //Print all info on the EEPROM.
+    Serial.println( "Info function" );
+    //Serial.println( str );
+
+    Serial.print  ( "DEC: " );
+    Serial.println( eds.getDEC() );
 }
 
 void setup()
@@ -29,6 +38,7 @@ void setup()
 
     cmdp.cmd_init();
     cmdp.cmd_add_cmd("test", test);
+    cmdp.cmd_add_cmd("info", info);
 
     bufferPos = 0;
 }
