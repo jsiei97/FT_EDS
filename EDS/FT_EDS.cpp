@@ -105,6 +105,8 @@ void FT_EDS::format()
     write32(0,0);
     //Remove DEC
     write16(5,0);
+
+    init();
 }
 
 uint16_t FT_EDS::getDEC()
