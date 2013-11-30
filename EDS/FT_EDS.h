@@ -58,13 +58,13 @@ class FT_EDS
          void format();
          uint16_t getDEC();
 
-         bool updateDE(edsId id, edsType type, uint8_t* data, unsigned int len);
-         bool readDE  (edsId id, edsType type, uint8_t* data, unsigned int len);
+         bool updateDE(edsId id, edsType type, uint8_t* data, uint16_t len);
+         bool readDE  (edsId id, edsType type, uint8_t* data, uint16_t len);
 
          bool updateDE(edsId id, edsType type, double data);
          bool readDE  (edsId id, double* data);
 
-         bool getDEInfo(unsigned int dePos, edsId* id, edsType* type, unsigned int* len);
+         bool getDEInfo(unsigned int dePos, edsId* id, edsType* type, uint16_t* len);
 
          unsigned int getFree();
 };

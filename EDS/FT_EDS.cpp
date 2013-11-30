@@ -120,14 +120,15 @@ bool FT_EDS::updateDE(edsId id, edsType type, double data)
 
     switch ( type )
     {
-        default:
-            type = EDS_FIXED_32_16;
-            //fall throu ok since 32_16 is default!
         case EDS_FIXED_32_16:
-            fData = (int)(data*(1<<16));
+            /// @bug Overflow on target!
+            fData = (int32_t)(data*(1<<16));
             break;
+        default:
+            type = EDS_FIXED_32_8;
+            //fall throu ok since 32_8 is default!
         case EDS_FIXED_32_8:
-            fData = (int)(data*(1<<8));
+            fData = (int32_t)(data*(1<<8));
             break;
     }
 
@@ -141,7 +142,7 @@ bool FT_EDS::updateDE(edsId id, edsType type, double data)
     return updateDE(id, type, &arr[0], 4);
 }
 
-bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, unsigned int len)
+bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, uint16_t len)
 {
     unsigned int pos = 0;
     uint16_t dec = getDEC();
@@ -287,7 +288,7 @@ bool FT_EDS::readDE(edsId id, double* data)
     return ret;
 }
 
-bool FT_EDS::readDE(edsId id, edsType type, uint8_t* data, unsigned int len)
+bool FT_EDS::readDE(edsId id, edsType type, uint8_t* data, uint16_t len)
 {
     unsigned int pos = 0;
     uint16_t dec = getDEC();
@@ -328,7 +329,7 @@ bool FT_EDS::readDE(edsId id, edsType type, uint8_t* data, unsigned int len)
     return false;
 }
 
-bool FT_EDS::getDEInfo(unsigned int dePos, edsId* id, edsType* type, unsigned int* len)
+bool FT_EDS::getDEInfo(unsigned int dePos, edsId* id, edsType* type, uint16_t* len)
 {
     int pos = 7+(dePos*10);
     *id   = (edsId)read16(pos);

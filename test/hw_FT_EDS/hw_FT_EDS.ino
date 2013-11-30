@@ -1,6 +1,7 @@
 #include <EEPROM.h>
 #include "FT_EDS.h"
 #include "CmdParse.h"
+#include "IntegerExtra.h"
 
 FT_EDS eds;
 CmdParse cmdp;
@@ -59,10 +60,55 @@ void put(char* str)
     if(len <= 2)
         return;
 
-    //parse str
-    //id=data
-    //check that it is a valid id, and then select type and size
+    char* data = &str[0];
 
+    //Split string into 2 strings before and after the = sign
+    size_t max = strlen(str);
+    size_t pos = 0;
+    for( pos=0; pos<max; pos++ )
+    {
+        if('=' == str[pos])
+        {
+            str[pos] = '\0';
+            if(pos+1 < max)
+            {
+                data = &str[pos+1];
+            }
+        }
+    }
+
+    if(str == data)
+    {
+        //printf("Fail: no =\n");
+        return;
+    }
+
+    edsId id = (edsId)IntegerExtra::hex2uint(str);
+    switch ( id )
+    {
+        case EDS_REGUL_P:
+        case EDS_REGUL_I:
+        case EDS_REGUL_D:
+            {
+            double valIn = atof(data);
+            eds.updateDE(id, EDS_FIXED_32_8, valIn);
+            double valOut;
+            eds.readDE(id, &valOut);
+            Serial.print("Update DE: ");
+            Serial.print( id, HEX );
+            Serial.print(" = ");
+            Serial.print( valOut );
+            Serial.print(" / ");
+            Serial.println( valIn );
+            }
+            break;
+
+        default:
+            Serial.print("Error id: ");
+            Serial.println(id);
+            return;
+            break;
+    }
 }
 
 void get(char* str)
@@ -74,9 +120,28 @@ void get(char* str)
     if(len == 0)
         return;
 
-    //parse str
-    //id
-    //check that it is a valid id, and then select correct read function
+    edsId id = (edsId)IntegerExtra::hex2uint(str);
+    switch ( id )
+    {
+        case EDS_REGUL_P:
+        case EDS_REGUL_I:
+        case EDS_REGUL_D:
+            {
+            double valOut;
+            eds.readDE(id, &valOut);
+            Serial.print("Read DE: ");
+            Serial.print( id, HEX );
+            Serial.print(" = ");
+            Serial.println( valOut );
+            }
+            break;
+
+        default:
+            Serial.print("Error id: ");
+            Serial.println(id);
+            return;
+            break;
+    }
 }
 
 void setup()

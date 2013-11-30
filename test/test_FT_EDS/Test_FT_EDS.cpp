@@ -300,7 +300,7 @@ void Test_FT_EDS::test_Regul()
     {
         edsId id;
         edsType type;
-        unsigned int size;
+        uint16_t size;
         QVERIFY(eds.getDEInfo(de, &id, &type, &size));
 
         switch ( id )
