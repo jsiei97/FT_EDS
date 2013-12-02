@@ -28,7 +28,7 @@
 #define MAGIC_2 0x54
 #define MAGIC_3 0x32
 
-#define FT_EDS_REV 1
+#define FT_EDS_REV 2
 
 #ifndef EEPROM_MAX_SIZE
 #define EEPROM_MAX_SIZE 1024
@@ -50,10 +50,9 @@ typedef enum eds_TYPE
     EDS_BYTE = 1,  ///< uint8_t
     EDS_WORD,      ///< uint32_t
 
-    EDS_FIXED_32_4 = 0x100,  ///< 32 bit fixed point with 2^4 scale
+    EDS_FIXED_32_16 = 0x100, ///< 32 bit fixed point with 2^16 scale
     EDS_FIXED_32_8,          ///< 32 bit fixed point with 2^8 scale
-    EDS_FIXED_32_12,         ///< 32 bit fixed point with 2^12 scale
-    EDS_FIXED_32_16,         ///< 32 bit fixed point with 2^16 scale
+    EDS_FIXED_32_4,          ///< 32 bit fixed point with 2^4 scale
 
     EDS_BYTE_ARRAY = 0x200,  ///< Array with uint8_t
 } edsType;

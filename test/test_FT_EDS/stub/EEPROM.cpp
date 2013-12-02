@@ -5,6 +5,11 @@
 #include <QByteArray>
 #include <QDebug>
 
+EEPROMClass::EEPROMClass()
+{
+    prom.fill(0xFF, EEPROM_MAX_SIZE);
+}
+
 uint8_t EEPROMClass::read(int address)
 {
     if(address>=EEPROM_MAX_SIZE)

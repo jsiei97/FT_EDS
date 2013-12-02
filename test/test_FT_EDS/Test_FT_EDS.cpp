@@ -177,24 +177,34 @@ void Test_FT_EDS::test_MAC()
 void Test_FT_EDS::test_FIXED_POINT_data()
 {
     QTest::addColumn<double>("kp");
-    QTest::newRow("test") <<  10.0;
-    QTest::newRow("test") << -10.0;
+    QTest::addColumn<int>("typeInt");
+
+    QTest::newRow("test") <<  10.0 << (int)EDS_FIXED_32_16;
+    QTest::newRow("test") << -10.0 << (int)EDS_FIXED_32_16;
+    QTest::newRow("test") <<   1.0 << (int)EDS_FIXED_32_8;
 
     int scale = 100;
-    for( int val = -30*scale ; val < 30*scale ; val += (scale*0.5))
-    {
-        QTest::newRow("Nice value test") << ((double)val)/scale;
-    }
-
     for( int val = -30*scale ; val < 30*scale ; val += (scale*0.01))
     {
-        QTest::newRow("Bad value test") << ((double)val)/scale;
+        QTest::newRow("Bad value test") << ((double)val)/scale << (int)EDS_FIXED_32_16;
+    }
+
+    for( int val = -30*scale ; val < 30*scale ; val += (scale*0.25))
+    {
+        QTest::newRow("Nice EDS_FIXED_32_16") << ((double)val)/scale << (int)EDS_FIXED_32_16;
+    }
+
+    for( int val = -30*scale ; val < 30*scale ; val += (scale*0.25))
+    {
+        QTest::newRow("Nice EDS_FIXED_32_8") << ((double)val)/scale << (int)EDS_FIXED_32_8;
     }
 }
 
 void Test_FT_EDS::test_FIXED_POINT()
 {
     QFETCH(double, kp);
+    QFETCH(int, typeInt);
+    edsType type = (edsType)typeInt;
 
     //qDebug() << __func__ << kp;
 
@@ -204,7 +214,7 @@ void Test_FT_EDS::test_FIXED_POINT()
     //HEXDUMP(&EEPROM.prom);
 
     double p2 = 0;
-    if(!eds.updateDE(EDS_REGUL_P, EDS_FIXED_32_16, kp))
+    if(!eds.updateDE(EDS_REGUL_P, type, kp))
     {
         HEXDUMP(&EEPROM.prom);
         QFAIL("updateDE failed!");
@@ -218,7 +228,11 @@ void Test_FT_EDS::test_FIXED_POINT()
 
     //Since fixpoint can store the exact value,
     //let't check a rounded value so we are close...!
-    QVERIFY(doubleApproxSame(kp, p2));
+    if(!doubleApproxSame(kp, p2))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("Values not the same!");
+    }
 
     //HEXDUMP(&EEPROM.prom);
 }
@@ -337,7 +351,6 @@ void Test_FT_EDS::test_Regul()
         {
             case EDS_FIXED_32_4:
             case EDS_FIXED_32_8:
-            case EDS_FIXED_32_12:
             case EDS_FIXED_32_16:
                 //ok
                 break;

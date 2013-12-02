@@ -14,6 +14,7 @@
 class EEPROMClass
 {
     public:
+        EEPROMClass();
         QByteArray prom;
         uint8_t read(int);
         void write(int, uint8_t);
@@ -22,4 +23,3 @@ class EEPROMClass
 extern EEPROMClass EEPROM;
 
 #endif
-
