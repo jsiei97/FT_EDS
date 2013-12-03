@@ -68,6 +68,14 @@ void format(char* str)
     Serial.println( "Done..." );
 }
 
+/**
+ * put data into the EEPROM
+ *
+ * To save a ethernet mac: 
+ * put=0x1=BADEBADEBABE
+ *
+ * @param str command data
+ */
 void put(char* str)
 {
     if(str == NULL)
@@ -101,8 +109,64 @@ void put(char* str)
     }
 
     edsId id = (edsId)IntegerExtra::hex2uint(str);
+    Serial.print("Update DE: ");
+    Serial.println( id, HEX );
     switch ( id )
     {
+        case EDS_ETH_MAC:
+            if( (6*2) == strlen(data) )
+            {
+                uint8_t mac[6];
+                char str[5];
+                str[0]='0';
+                str[1]='x';
+                str[4]='\0';
+                int i=0;
+                int pos=0;
+                for( i=0 ; i<12 ; i+=2, pos++ )
+                {
+                    str[2] = data[i];
+                    str[3] = data[i+1];
+                    mac[pos] =  IntegerExtra::hex2uint((char*)str);
+
+                    Serial.print( i );
+                    Serial.print( ":" );
+                    Serial.print( pos );
+                    Serial.print( " - " );
+                    Serial.print( str );
+                    Serial.print( " - " );
+                    Serial.print( mac[pos], HEX );
+                    Serial.println( "" );
+                    
+
+                }
+                eds.updateDE(id, EDS_BYTE_ARRAY , mac, 6);
+
+                for( pos=0 ; pos<6 ; pos++ )
+                {
+                    mac[pos]=0;
+                }
+                
+                if(!eds.readDE(id, EDS_BYTE_ARRAY, mac, 6))
+                {
+                    Serial.println( "readDE failed..." );
+                }
+
+                Serial.print( "readDE: MAC: " );
+                for( pos=0 ; pos<6 ; pos++ )
+                {
+                    Serial.print( mac[pos], HEX );
+                }
+                Serial.println( "" );
+                
+
+            }
+            else
+            {
+                Serial.println( "" );
+                Serial.println( "Error: Wrong MAC size..." );
+            }
+            break;
         case EDS_REGUL_P:
         case EDS_REGUL_I:
         case EDS_REGUL_D:
@@ -111,8 +175,6 @@ void put(char* str)
             eds.updateDE(id, EDS_FIXED_32_8, valIn);
             double valOut;
             eds.readDE(id, &valOut);
-            Serial.print("Update DE: ");
-            Serial.print( id, HEX );
             Serial.print(" = ");
             Serial.print( valOut );
             Serial.print(" / ");
@@ -140,6 +202,20 @@ void get(char* str)
     edsId id = (edsId)IntegerExtra::hex2uint(str);
     switch ( id )
     {
+        case EDS_ETH_MAC:
+            uint8_t mac[6];
+            if(!eds.readDE(id, EDS_BYTE_ARRAY, mac, 6))
+            {
+                Serial.println( "readDE failed..." );
+            }
+
+            Serial.print( "readDE: MAC: " );
+            for( int pos=0 ; pos<6 ; pos++ )
+            {
+                Serial.print( mac[pos], HEX );
+            }
+            Serial.println( "" );
+            break;
         case EDS_REGUL_P:
         case EDS_REGUL_I:
         case EDS_REGUL_D:
