@@ -50,6 +50,11 @@ typedef enum eds_TYPE
     EDS_BYTE = 1,  ///< uint8_t
     EDS_WORD,      ///< uint32_t
 
+    EDS_UINT_16 = 0x90,///< Integer type uint16_t
+    EDS_UINT_32,       ///< Integer type uint32_t
+    EDS_INT_16,        ///< Integer type int16_t
+    EDS_INT_32,        ///< Integer type int32_t
+
     EDS_FIXED_32_16 = 0x100, ///< 32 bit fixed point with 2^16 scale
     EDS_FIXED_32_8,          ///< 32 bit fixed point with 2^8 scale
     EDS_FIXED_32_4,          ///< 32 bit fixed point with 2^4 scale
@@ -68,6 +73,8 @@ class FT_EDS
          unsigned int posNextDE;
          unsigned int posFreeData;
 
+         unsigned int getPos(edsId id);
+
      public:
          void init();
          void format();
@@ -78,6 +85,9 @@ class FT_EDS
 
          bool updateDE(edsId id, edsType type, double data);
          bool readDE  (edsId id, double* data);
+
+         bool updateDE(edsId id, edsType type, uint16_t data);
+         bool readDE  (edsId id, uint16_t* data);
 
          bool getDEInfo(unsigned int dePos, edsId* id, edsType* type, uint16_t* len);
 

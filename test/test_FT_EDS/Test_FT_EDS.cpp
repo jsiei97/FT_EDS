@@ -35,6 +35,9 @@ class Test_FT_EDS : public QObject
         void test_FIXED_POINT();
         void test_FIXED_POINT_data();
 
+        void test_INTEGER();
+        void test_INTEGER_data();
+
         void test_Regul();
         void test_Regul_data();
 };
@@ -78,15 +81,22 @@ void Test_FT_EDS::test_MAC()
 
     uint8_t mac[] = { 0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x02 };
 
+    QCOMPARE(eds.getDEC(), (uint16_t)0);
+
     if(eds.readDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6))
     {
+		HEXDUMP(&EEPROM.prom);
         QFAIL("Not created so we should get a false here...!");
     }
 
     //qDebug() << eds.getDEC();
-    QCOMPARE(eds.getDEC(), (uint16_t)0);
+    QCOMPARE(eds.getDEC(), (uint16_t)1);
 
-    QVERIFY(eds.updateDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6));
+    if(!eds.updateDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("updateDE failed!");
+    }
 
     QCOMPARE((unsigned int)eds.getFree(), (unsigned int)(EEPROM_MAX_SIZE-7-10-6));
 
@@ -235,6 +245,56 @@ void Test_FT_EDS::test_FIXED_POINT()
     }
 
     //HEXDUMP(&EEPROM.prom);
+}
+
+void Test_FT_EDS::test_INTEGER_data()
+{
+    QTest::addColumn<int>("num");
+    QTest::addColumn<int>("typeInt");
+
+	QTest::newRow("test") <<       0 << (int)EDS_UINT_16;
+    QTest::newRow("test") <<       5 << (int)EDS_UINT_16;
+	QTest::newRow("test") <<  0xBABE << (int)EDS_UINT_16;
+	QTest::newRow("test") <<  0xFFFF << (int)EDS_UINT_16;
+}
+
+void Test_FT_EDS::test_INTEGER()
+{
+    QFETCH(int, num);
+    QFETCH(int, typeInt);
+    edsType type = (edsType)typeInt;
+
+    FT_EDS eds;
+    eds.format();
+    eds.init();
+    //HEXDUMP(&EEPROM.prom);
+
+    switch ( type )
+    {
+        case  EDS_UINT_16:
+            {
+            if(!eds.updateDE(EDS_REGUL_P, type, (uint16_t)num))
+            {
+                HEXDUMP(&EEPROM.prom);
+                QFAIL("updateDE failed!");
+            }
+            uint16_t check = 0;
+            if(!eds.readDE(EDS_REGUL_P, &check))
+            {
+                HEXDUMP(&EEPROM.prom);
+                QFAIL("readDE failed!");
+            }
+            if(check != (uint16_t)num)
+            {
+                HEXDUMP(&EEPROM.prom);
+                QFAIL("Values not the same!");
+            }
+            }
+            break;
+        default :
+            QFAIL("ToDo: Impl test...");
+            break;
+    }
 }
 
 void Test_FT_EDS::test_Regul_data()

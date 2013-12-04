@@ -66,6 +66,50 @@ void FT_EDS::write32(int address, uint32_t data)
         data >>= 8;
     }
 }
+
+unsigned int FT_EDS::getPos(edsId id)
+{
+    unsigned int pos = 0;
+    uint16_t dec = getDEC();
+    for( int i = 0 ; i < dec ; i++ )
+    {
+        pos = 7+(i*10);
+        if(read16(pos)==(uint16_t)id)
+        {
+            break;
+        }
+        else
+        {
+            pos = 0;
+        }
+    }
+
+    //Create a new DE if it is missing!
+    if(0 == pos)
+    {
+        //Is there space?
+        if(posNextDE+10 >= posFreeData)
+        {
+            return 0;
+        }
+
+        pos=posNextDE;
+
+        //add a new DE, since this is new
+        dec++;
+        write16(5, dec);
+
+        write16(posNextDE,   (uint16_t)id); //deId
+        write16(posNextDE+2, (uint16_t)0);  //deType
+        write16(posNextDE+4, (uint16_t)0);  //deLen
+        write32(posNextDE+6, (uint32_t)0);  //deData
+
+        posNextDE += 10;
+    }
+
+    return pos;
+}
+
 // --- PUBLIC ---
 
 void FT_EDS::init()
@@ -131,8 +175,39 @@ uint16_t FT_EDS::getDEC()
     return read16(5);
 }
 
+bool FT_EDS::updateDE(edsId id, edsType type, uint16_t data)
+{
+    unsigned int pos = getPos(id);
+    if(0==pos)
+        return false;
+
+    write16(pos+2, (uint16_t)type); //deType
+    write16(pos+4, (uint16_t)2);    //deLen
+
+    write16(pos+6,   (uint16_t)0);    //deData
+    write16(pos+6+2, (uint16_t)data); //deData
+
+    return true;
+}
+
+bool FT_EDS::readDE(edsId id, uint16_t* data)
+{
+    unsigned int pos = getPos(id);
+    if( 0 == pos)
+        return false;
+
+    /// @todo Check size and type?
+
+    *data = read16(pos+6+2);
+    return true;
+}
+
 bool FT_EDS::updateDE(edsId id, edsType type, double data)
 {
+    unsigned int pos = getPos(id);
+    if(0==pos)
+        return false;
+
     int32_t fData = 0;
 
     switch ( type )
@@ -149,124 +224,74 @@ bool FT_EDS::updateDE(edsId id, edsType type, double data)
             break;
     }
 
-    uint8_t arr[4] ;
-    for( int i=3 ; i>=0 ; i-- )
-    {
-        arr[i] = 0xFF & fData;
-        fData >>= 8;
-    }
+    write16(pos+2, (uint16_t)type);  //deType
+    write16(pos+4, (uint16_t)4);     //deLen
+    write32(pos+6, (uint32_t)fData); //deData
 
-    return updateDE(id, type, &arr[0], 4);
+    return true;
 }
 
 bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, uint16_t len)
 {
-    unsigned int pos = 0;
-    uint16_t dec = getDEC();
-    for( int i = 0 ; i < dec ; i++ )
-    {
-        pos = 7+(i*10);
-        if(read16(pos)==(uint16_t)id)
-        {
-            break;
-        }
-        else
-        {
-            pos = 0;
-        }
-    }
+    unsigned int pos = getPos(id);
+    if(0==pos)
+        return false;
 
-    if(0 == pos)
+    //Update the old DE found at "pos"
+
+    //Check that it has the same size as the old
+    uint16_t oldLen = read16(pos+4);
+    unsigned int diff = len-oldLen;
+
+    if((oldLen < len) && (len > 4))
     {
-        if(len > getFree())
+        if(diff > getFree())
         {
             return false;
         }
-        //add a new DE, since this is new
-        dec++;
-        write16(5, dec);
 
-        write16(posNextDE,   (uint16_t)id);   //deId
-        write16(posNextDE+2, (uint16_t)type); //deType
-        write16(posNextDE+4, (uint16_t)len);  //deLen
+        //It is NOT the same size!
+        uint32_t oldP = read32(pos+6);
 
-        if(len <= 4)
+        //The size is different but maybe we can fit it in...
+        if(0==oldP)
         {
-            //data fits in the area
-            for( unsigned int i=0 ; i<len ; i++ )
-            {
-                EEPROM.write(posNextDE+6+i, data[i]);
-            }
+            oldP=posFreeData;
         }
-        else
+        else if(oldP != posFreeData)
         {
-            //data goes into the free area, deData has a pointer to it!
-            posFreeData -= len;
-            write32(posNextDE+6, (uint32_t)(posFreeData));  //deLen
-
-            for( unsigned int i=0 ; i<len ; i++ )
-            {
-                EEPROM.write(posFreeData+i, data[i]);
-            }
+            //Only allow the last data to grow,
+            //the others has data before or after!
+            return false;
         }
-        posNextDE += 10;
+
+        //Move back the pointer to get more space
+        oldP -= diff;
+        posFreeData -= diff;
+        write32(pos+6, oldP);
+    }
+
+    write16(pos+2, (uint16_t)type); //deType
+    write16(pos+4, (uint16_t)len);  //deLen
+
+    if(len > 4)
+    {
+        uint32_t p = read32(pos+6);
+        if(p>EEPROM_MAX_SIZE)
+        {
+            //Where did this pointer go???
+            return false;
+        }
+        for( unsigned int i=0 ; i<len ; i++ )
+        {
+            EEPROM.write(p+i, data[i]);
+        }
     }
     else
     {
-        //update the old DE found at "pos"
-
-        //Check that it has the same size as the old
-        uint16_t oldLen = read16(pos+4);
-        unsigned int diff = len-oldLen;
-
-
-        if((oldLen < len) && (len > 4))
+        for( unsigned int i=0 ; i<len ; i++ )
         {
-            if(diff > getFree())
-            {
-                return false;
-            }
-
-            //It is NOT the same size!
-            uint32_t oldP = read32(pos+6);
-
-            //The size is different but maybe we can fit it in...
-            if(oldP != posFreeData)
-            {
-                //Only allow the last data to grow,
-                //the others has data before or after!
-                return false;
-            }
-
-            //Move back the pointer to get more space
-            oldP -= diff;
-            posFreeData -= diff;
-            write32(pos+6, oldP);
-        }
-
-        write16(pos+2, (uint16_t)type); //deType
-        write16(pos+4, (uint16_t)len);  //deLen
-
-        if(len > 4)
-        {
-            uint32_t p = read32(pos+6);
-            if(p>EEPROM_MAX_SIZE)
-            {
-                //Where did this pointer go???
-                return false;
-            }
-            for( unsigned int i=0 ; i<len ; i++ )
-            {
-                EEPROM.write(p+i, data[i]);
-            }
-        }
-        else
-        {
-            for( unsigned int i=0 ; i<len ; i++ )
-            {
-                EEPROM.write(pos+6+i, data[i]);
-            }
-
+            EEPROM.write(pos+6+i, data[i]);
         }
     }
 
@@ -276,72 +301,65 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, uint16_t len)
 bool FT_EDS::readDE(edsId id, double* data)
 {
     bool ret = false;
-    unsigned int pos = 0;
-    uint16_t dec = getDEC();
-    for( int i = 0 ; i < dec ; i++ )
-    {
-        pos = 7+(i*10);
-        if( read16(pos) == (uint16_t)id )
-        {
-            uint16_t type = read16(pos+2);
-            //uint16_t len  = read16(pos+4);
-            int32_t raw = (int32_t)read32(pos+6);
+    unsigned int pos = getPos(id);
+    if( 0 == pos)
+        return false;
 
-            switch ( type )
-            {
-                case EDS_FIXED_32_8:
-                    *data = (double)raw;
-                    *data /= (1<<8);
-                    ret = true;
-                    break;
-                case EDS_FIXED_32_16:
-                    *data = (double)raw;
-                    *data /= (1<<16);
-                    ret = true;
-                    break;
-            }
-        }
+    uint16_t type = read16(pos+2);
+    //uint16_t len  = read16(pos+4);
+    int32_t raw = (int32_t)read32(pos+6);
+
+    switch ( type )
+    {
+        case EDS_FIXED_32_8:
+            *data = (double)raw;
+            *data /= (1<<8);
+            ret = true;
+            break;
+        case EDS_FIXED_32_16:
+            *data = (double)raw;
+            *data /= (1<<16);
+            ret = true;
+            break;
     }
     return ret;
 }
 
 bool FT_EDS::readDE(edsId id, edsType type, uint8_t* data, uint16_t len)
 {
-    unsigned int pos = 0;
-    uint16_t dec = getDEC();
-    for( int i = 0 ; i < dec ; i++ )
+    unsigned int pos = getPos(id);
+    if( 0 == pos)
+        return false;
+
+    if(
+            read16(pos)  ==(uint16_t)id &&
+            read16(pos+2)==(uint16_t)type &&
+            read16(pos+4)==(uint16_t)len
+      )
     {
-        pos = 7+(i*10);
-        if(
-                read16(pos)  ==(uint16_t)id &&
-                read16(pos+2)==(uint16_t)type &&
-                read16(pos+4)==(uint16_t)len
-          )
+        if(len > 4)
         {
-            if(len > 4)
+            uint32_t p = read32(pos+6);
+            if(p>EEPROM_MAX_SIZE)
             {
-                uint32_t p = read32(pos+6);
-                if(p>EEPROM_MAX_SIZE)
-                {
-                    //Where did this pointer go???
-                    return false;
-                }
-
-                for( unsigned int i=0 ; i<len ; i++ )
-                {
-                    data[i] = EEPROM.read(p+i);
-                }
+                //Where did this pointer go???
+                return false;
             }
-            else
+
+            for( unsigned int i=0 ; i<len ; i++ )
             {
-                for( unsigned int i=0 ; i<len ; i++ )
-                {
-                    data[i] = EEPROM.read(pos+6+i);
-                }
-
+                data[i] = EEPROM.read(p+i);
             }
-            return true;
         }
+        else
+        {
+            for( unsigned int i=0 ; i<len ; i++ )
+            {
+                data[i] = EEPROM.read(pos+6+i);
+            }
+
+        }
+        return true;
     }
     return false;
 }
