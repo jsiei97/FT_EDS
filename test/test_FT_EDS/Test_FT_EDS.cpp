@@ -41,6 +41,9 @@ class Test_FT_EDS : public QObject
         void test_EDS_UINT_32();
         void test_EDS_UINT_32_data();
 
+        void test_EDS_INT_32();
+        void test_EDS_INT_32_data();
+
         void test_Regul();
         void test_Regul_data();
 };
@@ -307,7 +310,7 @@ void Test_FT_EDS::test_EDS_UINT_32()
     eds.init();
     //HEXDUMP(&EEPROM.prom);
 
-    if(!eds.updateDE(EDS_REGUL_P, EDS_UINT_16, (uint32_t)num))
+    if(!eds.updateDE(EDS_REGUL_P, EDS_UINT_32, (uint32_t)num))
     {
         HEXDUMP(&EEPROM.prom);
         QFAIL("updateDE failed!");
@@ -319,6 +322,45 @@ void Test_FT_EDS::test_EDS_UINT_32()
         QFAIL("readDE failed!");
     }
     if(check != (uint32_t)num)
+    {
+        HEXDUMP(&EEPROM.prom);
+        qDebug() << __func__ << __LINE__ << check << num;
+        QFAIL("Values not the same!");
+    }
+}
+
+void Test_FT_EDS::test_EDS_INT_32_data()
+{
+    QTest::addColumn<int>("num");
+
+    for( int i=-400 ; i<400 ; i+=5 )
+    {
+        QTest::newRow ("test") << i;
+    }
+    
+}
+
+void Test_FT_EDS::test_EDS_INT_32()
+{
+    QFETCH(int, num);
+
+    FT_EDS eds;
+    eds.format();
+    eds.init();
+    //HEXDUMP(&EEPROM.prom);
+
+    if(!eds.updateDE(EDS_REGUL_P, EDS_INT_32, (int32_t)num))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("updateDE failed!");
+    }
+    int32_t check = 0;
+    if(!eds.readDE(EDS_REGUL_P, &check))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("readDE failed!");
+    }
+    if(check != (int32_t)num)
     {
         HEXDUMP(&EEPROM.prom);
         qDebug() << __func__ << __LINE__ << check << num;
