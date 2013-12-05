@@ -184,8 +184,22 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint16_t data)
     write16(pos+2, (uint16_t)type); //deType
     write16(pos+4, (uint16_t)2);    //deLen
 
-    write16(pos+6,   (uint16_t)0);    //deData
-    write16(pos+6+2, (uint16_t)data); //deData
+    write16(pos+6,   0);    //deData
+    write16(pos+6+2, data); //deData
+
+    return true;
+}
+
+bool FT_EDS::updateDE(edsId id, edsType type, uint32_t data)
+{
+    unsigned int pos = getPos(id);
+    if(0==pos)
+        return false;
+
+    write16(pos+2, (uint16_t)type); //deType
+    write16(pos+4, (uint16_t)2);    //deLen
+
+    write32(pos+6, data); //deData
 
     return true;
 }
@@ -199,6 +213,18 @@ bool FT_EDS::readDE(edsId id, uint16_t* data)
     /// @todo Check size and type?
 
     *data = read16(pos+6+2);
+    return true;
+}
+
+bool FT_EDS::readDE(edsId id, uint32_t* data)
+{
+    unsigned int pos = getPos(id);
+    if( 0 == pos)
+        return false;
+
+    /// @todo Check size and type?
+
+    *data = read32(pos+6);
     return true;
 }
 

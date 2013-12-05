@@ -89,6 +89,9 @@ class FT_EDS
          bool updateDE(edsId id, edsType type, uint16_t data);
          bool readDE  (edsId id, uint16_t* data);
 
+         bool updateDE(edsId id, edsType type, uint32_t data);
+         bool readDE  (edsId id, uint32_t* data);
+
          bool getDEInfo(unsigned int dePos, edsId* id, edsType* type, uint16_t* len);
 
          unsigned int getFree();

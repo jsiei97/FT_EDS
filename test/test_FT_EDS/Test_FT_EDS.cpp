@@ -35,8 +35,11 @@ class Test_FT_EDS : public QObject
         void test_FIXED_POINT();
         void test_FIXED_POINT_data();
 
-        void test_INTEGER();
-        void test_INTEGER_data();
+        void test_EDS_UINT_16();
+        void test_EDS_UINT_16_data();
+
+        void test_EDS_UINT_32();
+        void test_EDS_UINT_32_data();
 
         void test_Regul();
         void test_Regul_data();
@@ -85,7 +88,7 @@ void Test_FT_EDS::test_MAC()
 
     if(eds.readDE(EDS_ETH_MAC, EDS_BYTE_ARRAY, mac, 6))
     {
-		HEXDUMP(&EEPROM.prom);
+        HEXDUMP(&EEPROM.prom);
         QFAIL("Not created so we should get a false here...!");
     }
 
@@ -247,53 +250,79 @@ void Test_FT_EDS::test_FIXED_POINT()
     //HEXDUMP(&EEPROM.prom);
 }
 
-void Test_FT_EDS::test_INTEGER_data()
+void Test_FT_EDS::test_EDS_UINT_16_data()
 {
     QTest::addColumn<int>("num");
-    QTest::addColumn<int>("typeInt");
-
-	QTest::newRow("test") <<       0 << (int)EDS_UINT_16;
-    QTest::newRow("test") <<       5 << (int)EDS_UINT_16;
-	QTest::newRow("test") <<  0xBABE << (int)EDS_UINT_16;
-	QTest::newRow("test") <<  0xFFFF << (int)EDS_UINT_16;
+    QTest::newRow("test") <<       0;
+    QTest::newRow("test") <<       5;
+    QTest::newRow("test") <<  0xBABE;
+    QTest::newRow("test") <<  0xFFFF;
 }
 
-void Test_FT_EDS::test_INTEGER()
+void Test_FT_EDS::test_EDS_UINT_16()
 {
     QFETCH(int, num);
-    QFETCH(int, typeInt);
-    edsType type = (edsType)typeInt;
 
     FT_EDS eds;
     eds.format();
     eds.init();
     //HEXDUMP(&EEPROM.prom);
 
-    switch ( type )
+    if(!eds.updateDE(EDS_REGUL_P, EDS_UINT_16, (uint16_t)num))
     {
-        case  EDS_UINT_16:
-            {
-            if(!eds.updateDE(EDS_REGUL_P, type, (uint16_t)num))
-            {
-                HEXDUMP(&EEPROM.prom);
-                QFAIL("updateDE failed!");
-            }
-            uint16_t check = 0;
-            if(!eds.readDE(EDS_REGUL_P, &check))
-            {
-                HEXDUMP(&EEPROM.prom);
-                QFAIL("readDE failed!");
-            }
-            if(check != (uint16_t)num)
-            {
-                HEXDUMP(&EEPROM.prom);
-                QFAIL("Values not the same!");
-            }
-            }
-            break;
-        default :
-            QFAIL("ToDo: Impl test...");
-            break;
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("updateDE failed!");
+    }
+    uint16_t check = 0;
+    if(!eds.readDE(EDS_REGUL_P, &check))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("readDE failed!");
+    }
+    if(check != (uint16_t)num)
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("Values not the same!");
+    }
+}
+
+void Test_FT_EDS::test_EDS_UINT_32_data()
+{
+    QTest::addColumn<unsigned int>("num");
+
+    QTest::newRow ("zero") <<          (unsigned int)0;
+    QTest::newRow ("five") <<          (unsigned int)5;
+    QTest::newRow("16bit") <<     (unsigned int)0xBABE;
+    QTest::newRow("16bit") <<     (unsigned int)0xFFFF;
+    QTest::newRow("32bit") << (unsigned int)0xFEDCBA98;
+    QTest::newRow("32bit") << (unsigned int)0xFFFFFFFF;
+}
+
+void Test_FT_EDS::test_EDS_UINT_32()
+{
+    QFETCH(unsigned int, num);
+
+    FT_EDS eds;
+    eds.format();
+    eds.init();
+    //HEXDUMP(&EEPROM.prom);
+
+    if(!eds.updateDE(EDS_REGUL_P, EDS_UINT_16, (uint32_t)num))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("updateDE failed!");
+    }
+    uint32_t check = 0;
+    if(!eds.readDE(EDS_REGUL_P, &check))
+    {
+        HEXDUMP(&EEPROM.prom);
+        QFAIL("readDE failed!");
+    }
+    if(check != (uint32_t)num)
+    {
+        HEXDUMP(&EEPROM.prom);
+        qDebug() << __func__ << __LINE__ << check << num;
+        QFAIL("Values not the same!");
     }
 }
 
