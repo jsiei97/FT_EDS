@@ -64,36 +64,38 @@ typedef enum eds_TYPE
 
 class FT_EDS
 {
-     private:
-         uint16_t read16(int address);
-         uint32_t read32(int address);
-         void write16(int address, uint16_t data);
-         void write32(int address, uint32_t data);
+    private:
+        uint16_t read16(int address);
+        uint32_t read32(int address);
+        void write16(int address, uint16_t data);
+        void write32(int address, uint32_t data);
 
-         unsigned int posNextDE;
-         unsigned int posFreeData;
+        unsigned int posNextDE;
+        unsigned int posFreeData;
 
-         unsigned int getPos(edsId id);
+        unsigned int getPos(edsId id);
 
-     public:
-         void init();
-         void format();
-         uint16_t getDEC();
+    public:
+        void init();
+        void format();
+        uint16_t getDEC();
 
-         bool readDE  (edsId id, edsType type, uint8_t* data, uint16_t len);
-         bool updateDE(edsId id, edsType type, uint8_t* data, uint16_t len);
+        bool readDE  (edsId id, edsType type, uint8_t* data, uint16_t len);
+        bool updateDE(edsId id, edsType type, uint8_t* data, uint16_t len);
 
-         bool readDE(edsId id, double* data);
-         bool readDE(edsId id, int32_t* data);
-         bool readDE(edsId id, uint16_t* data);
-         bool readDE(edsId id, uint32_t* data);
+        bool readDE(edsId id, double* data);
+        bool readDE(edsId id, int16_t* data);
+        bool readDE(edsId id, int32_t* data);
+        bool readDE(edsId id, uint16_t* data);
+        bool readDE(edsId id, uint32_t* data);
 
-         bool updateDE(edsId id, edsType type, double data);
-         bool updateDE(edsId id, edsType type, int32_t data);
-         bool updateDE(edsId id, edsType type, uint16_t data);
-         bool updateDE(edsId id, edsType type, uint32_t data);
+        bool updateDE(edsId id, edsType type, double data);
+        bool updateDE(edsId id, edsType type, int16_t data);
+        bool updateDE(edsId id, edsType type, int32_t data);
+        bool updateDE(edsId id, edsType type, uint16_t data);
+        bool updateDE(edsId id, edsType type, uint32_t data);
 
-         bool getDEInfo(unsigned int dePos, edsId* id, edsType* type, uint16_t* len);
+        bool getDEInfo(unsigned int dePos, edsId* id, edsType* type, uint16_t* len);
 
-         unsigned int getFree();
+        unsigned int getFree();
 };
