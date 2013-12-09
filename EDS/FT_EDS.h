@@ -21,6 +21,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef  __FT_EDS_H
+#define  __FT_EDS_H
+
 #include <inttypes.h>
 
 #define MAGIC_0 0x23
@@ -99,3 +102,5 @@ class FT_EDS
 
         unsigned int getFree();
 };
+
+#endif  // __FT_EDS_H
