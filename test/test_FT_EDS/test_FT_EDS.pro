@@ -2,6 +2,7 @@ CONFIG += qtestlib debug
 TEMPLATE = app
 TARGET =
 DEFINES += private=public
+DEFINES += protected=public
 DEFINES += EEPROM_MAX_SIZE=100
 
 # Test code

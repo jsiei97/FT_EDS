@@ -67,7 +67,7 @@ typedef enum eds_TYPE
 
 class FT_EDS
 {
-    private:
+    protected:
         uint16_t read16(int address);
         uint32_t read32(int address);
         void write16(int address, uint16_t data);
