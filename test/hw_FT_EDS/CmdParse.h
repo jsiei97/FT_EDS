@@ -37,7 +37,7 @@ typedef struct CMD_Struct {
 #endif
 
 #ifndef CMD_MAX_CNT
-#define CMD_MAX_CNT 5
+#define CMD_MAX_CNT 10
 #endif
 
 class CmdParse
