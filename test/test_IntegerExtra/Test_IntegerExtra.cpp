@@ -30,6 +30,8 @@ class Test_IntegerExtra : public QObject
     private slots:
         void test_hex2uint();
         void test_hex2uint_data();
+
+        void test_hex2uint_negative();
 };
 
 void Test_IntegerExtra::test_hex2uint_data()
@@ -78,5 +80,30 @@ void Test_IntegerExtra::test_hex2uint()
     QCOMPARE(result, hex);
 }
 
+void Test_IntegerExtra::test_hex2uint_negative()
+{
+    //Test with bad input, all should become 0
+    QCOMPARE(IntegerExtra::hex2uint(NULL), (unsigned int)0);
+
+    QCOMPARE(IntegerExtra::hex2uint("+-"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("<>"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("{}"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("GT"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("gt"), (unsigned int)0);
+
+    QCOMPARE(IntegerExtra::hex2uint("0x+-"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("0x<>"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("0x{}"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("0xGT"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("0xgt"), (unsigned int)0);
+
+    //Test with trailing chars
+    QCOMPARE(IntegerExtra::hex2uint("0x10P"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("0x10+"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("0x10<"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("0x10{"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("0x10r"), (unsigned int)0);
+
+}
 QTEST_MAIN(Test_IntegerExtra)
 #include "Test_IntegerExtra.moc"

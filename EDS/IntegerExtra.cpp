@@ -70,6 +70,11 @@ unsigned int IntegerExtra::hex2uint(char* str)
                 {
                     num += ( (tmp[pos] - 'A' + 10)*scale );
                 }
+                else
+                {
+                    //Non valid char, just fail and return 0!
+                    return 0;
+                }
             }
         }
     }
