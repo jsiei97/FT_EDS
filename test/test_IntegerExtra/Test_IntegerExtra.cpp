@@ -85,35 +85,35 @@ void Test_IntegerExtra::test_hex2uint_negative()
     //Test with bad input, all should become 0
     QCOMPARE(IntegerExtra::hex2uint(NULL), (unsigned int)0);
 
-    QCOMPARE(IntegerExtra::hex2uint("+-"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("<>"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("{}"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("GT"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("gt"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"+-"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"<>"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"{}"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"GT"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"gt"), (unsigned int)0);
 
-    QCOMPARE(IntegerExtra::hex2uint("0x"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("x0"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"0x"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"x0"), (unsigned int)0);
 
-    QCOMPARE(IntegerExtra::hex2uint("0x+-"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("0x<>"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("0x{}"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("0xGT"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("0xgt"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"0x+-"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"0x<>"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"0x{}"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"0xGT"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"0xgt"), (unsigned int)0);
 
     //Test with trailing chars
-    QCOMPARE(IntegerExtra::hex2uint("0x1bP"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("0x1b+"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("0x1b<"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("0x1b{"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("0x1br"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"0x1bP"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"0x1b+"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"0x1b<"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"0x1b{"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"0x1br"), (unsigned int)0);
 
     //But the atoi is ok with trailing chars,
     //so I guess I allow it
-    QCOMPARE(IntegerExtra::hex2uint("17P"), (unsigned int)17);
-    QCOMPARE(IntegerExtra::hex2uint("17+"), (unsigned int)17);
-    QCOMPARE(IntegerExtra::hex2uint("17<"), (unsigned int)17);
-    QCOMPARE(IntegerExtra::hex2uint("17{"), (unsigned int)17);
-    QCOMPARE(IntegerExtra::hex2uint("17r"), (unsigned int)17);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"17P"), (unsigned int)17);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"17+"), (unsigned int)17);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"17<"), (unsigned int)17);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"17{"), (unsigned int)17);
+    QCOMPARE(IntegerExtra::hex2uint((char*)"17r"), (unsigned int)17);
 }
 
 
