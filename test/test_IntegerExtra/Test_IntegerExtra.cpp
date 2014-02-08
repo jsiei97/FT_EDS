@@ -69,7 +69,7 @@ void Test_IntegerExtra::test_hex2uint()
 
     if(!ok)
         hex = string.toUInt(&ok,16);
-    
+
     QVERIFY(ok);
 
     char* str = string.toAscii().data();
@@ -91,6 +91,9 @@ void Test_IntegerExtra::test_hex2uint_negative()
     QCOMPARE(IntegerExtra::hex2uint("GT"), (unsigned int)0);
     QCOMPARE(IntegerExtra::hex2uint("gt"), (unsigned int)0);
 
+    QCOMPARE(IntegerExtra::hex2uint("0x"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("x0"), (unsigned int)0);
+
     QCOMPARE(IntegerExtra::hex2uint("0x+-"), (unsigned int)0);
     QCOMPARE(IntegerExtra::hex2uint("0x<>"), (unsigned int)0);
     QCOMPARE(IntegerExtra::hex2uint("0x{}"), (unsigned int)0);
@@ -98,12 +101,21 @@ void Test_IntegerExtra::test_hex2uint_negative()
     QCOMPARE(IntegerExtra::hex2uint("0xgt"), (unsigned int)0);
 
     //Test with trailing chars
-    QCOMPARE(IntegerExtra::hex2uint("0x10P"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("0x10+"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("0x10<"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("0x10{"), (unsigned int)0);
-    QCOMPARE(IntegerExtra::hex2uint("0x10r"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("0x1bP"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("0x1b+"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("0x1b<"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("0x1b{"), (unsigned int)0);
+    QCOMPARE(IntegerExtra::hex2uint("0x1br"), (unsigned int)0);
 
+    //But the atoi is ok with trailing chars,
+    //so I guess I allow it
+    QCOMPARE(IntegerExtra::hex2uint("17P"), (unsigned int)17);
+    QCOMPARE(IntegerExtra::hex2uint("17+"), (unsigned int)17);
+    QCOMPARE(IntegerExtra::hex2uint("17<"), (unsigned int)17);
+    QCOMPARE(IntegerExtra::hex2uint("17{"), (unsigned int)17);
+    QCOMPARE(IntegerExtra::hex2uint("17r"), (unsigned int)17);
 }
+
+
 QTEST_MAIN(Test_IntegerExtra)
 #include "Test_IntegerExtra.moc"
