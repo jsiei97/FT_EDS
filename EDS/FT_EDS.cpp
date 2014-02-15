@@ -112,13 +112,14 @@ unsigned int FT_EDS::getPos(edsId id)
 
 // --- PUBLIC ---
 
+/**
+ * Initialize eeprom structure
+ */
 void FT_EDS::init()
 {
     //check for the magic and a valid base
-    if((EEPROM.read(0) == MAGIC_0) &&
-            (EEPROM.read(1) == MAGIC_1) &&
-            (EEPROM.read(2) == MAGIC_2) &&
-            (EEPROM.read(3) == MAGIC_3) &&
+    if(
+            (read32(0) == MAGIC) &&
             (EEPROM.read(4) == FT_EDS_REV))
     {
         uint16_t dec = getDEC();
@@ -145,10 +146,7 @@ void FT_EDS::init()
     {
         //No valid data...!
         //let's create a new base
-        EEPROM.write(0, MAGIC_0);
-        EEPROM.write(1, MAGIC_1);
-        EEPROM.write(2, MAGIC_2);
-        EEPROM.write(3, MAGIC_3);
+        write32(0, MAGIC);
         EEPROM.write(4, FT_EDS_REV);
 
         //with DEC (Data Entry Count) 0
@@ -160,6 +158,9 @@ void FT_EDS::init()
     posFreeData = EEPROM_MAX_SIZE;
 }
 
+/**
+ * Format EEPROM and do a reinitialize data structure.
+ */
 void FT_EDS::format()
 {
     //Remove magic
@@ -170,6 +171,12 @@ void FT_EDS::format()
     init();
 }
 
+/**
+ * Get the current DEC (Data Entry Count).
+ *
+ * This is how many entries is stored.
+ * @return unint16_t dec
+ */
 uint16_t FT_EDS::getDEC()
 {
     return read16(5);
@@ -377,6 +384,13 @@ bool FT_EDS::updateDE(edsId id, edsType type, uint8_t* data, uint16_t len)
     return true;
 }
 
+/**
+ * Read and get data stored in id.
+ *
+ * @param id 
+ * @param data as double 
+ * @return true if ok
+ */
 bool FT_EDS::readDE(edsId id, double* data)
 {
     bool ret = false;
@@ -404,6 +418,15 @@ bool FT_EDS::readDE(edsId id, double* data)
     return ret;
 }
 
+/**
+ * Read and get data stored in id.
+ *
+ * @param id 
+ * @param type 
+ * @param data raw data
+ * @param len size
+ * @return true if ok
+ */
 bool FT_EDS::readDE(edsId id, edsType type, uint8_t* data, uint16_t len)
 {
     unsigned int pos = getPos(id);

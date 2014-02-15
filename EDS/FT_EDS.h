@@ -26,17 +26,18 @@
 
 #include <inttypes.h>
 
-#define MAGIC_0 0x23
-#define MAGIC_1 0x45
-#define MAGIC_2 0x54
-#define MAGIC_3 0x32
+/// Magic
+#define MAGIC (0x23455432)
 
+/// Data revision
 #define FT_EDS_REV 2
 
 #ifndef EEPROM_MAX_SIZE
+/// Current eeprom size
 #define EEPROM_MAX_SIZE 1024
 #endif
 
+/// Data for the eds id field
 typedef enum eds_ID
 {
     EDS_ETH_MAC      = 0x001, ///< Ethernet MAC for the Eth Shield
@@ -48,6 +49,7 @@ typedef enum eds_ID
     EDS_REGUL_D,              ///< d in pid
 } edsId;
 
+/// Data for the eds type field
 typedef enum eds_TYPE
 {
     EDS_BYTE = 1,  ///< uint8_t
@@ -65,6 +67,9 @@ typedef enum eds_TYPE
     EDS_BYTE_ARRAY = 0x200,  ///< Array with uint8_t
 } edsType;
 
+/**
+ * A EEPROM Data Storage class
+ */
 class FT_EDS
 {
     protected:
