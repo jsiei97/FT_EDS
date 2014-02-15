@@ -2,3 +2,9 @@
 cscope.files
 cscope.out
 tags
+
+*.swp
+
+#Ignore doxygen
+doxygen/
+doxygen.warn
